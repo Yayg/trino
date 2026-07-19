@@ -41,6 +41,7 @@ public class OAuth2Config
     private String clientSecret;
     private Set<String> scopes = ImmutableSet.of(OPENID_SCOPE);
     private String principalField = "sub";
+    private Optional<String> groupsField = Optional.empty();
     private List<String> additionalAudiences = Collections.emptyList();
     private Duration challengeTimeout = new Duration(15, TimeUnit.MINUTES);
     private Duration maxClockSkew = new Duration(1, TimeUnit.MINUTES);
@@ -147,6 +148,19 @@ public class OAuth2Config
     public OAuth2Config setPrincipalField(String principalField)
     {
         this.principalField = principalField;
+        return this;
+    }
+
+    public Optional<String> getGroupsField()
+    {
+        return groupsField;
+    }
+
+    @Config("http-server.authentication.oauth2.groups-field")
+    @ConfigDescription("The claim to use for the principal's groups")
+    public OAuth2Config setGroupsField(String groupsField)
+    {
+        this.groupsField = Optional.ofNullable(groupsField);
         return this;
     }
 

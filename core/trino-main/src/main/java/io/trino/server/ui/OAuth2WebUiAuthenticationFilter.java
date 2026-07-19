@@ -23,6 +23,7 @@ import io.trino.server.security.oauth2.ChallengeFailedException;
 import io.trino.server.security.oauth2.ForRefreshTokens;
 import io.trino.server.security.oauth2.OAuth2Client;
 import io.trino.server.security.oauth2.OAuth2Config;
+import io.trino.server.security.oauth2.OAuth2Groups;
 import io.trino.server.security.oauth2.OAuth2Service;
 import io.trino.server.security.oauth2.TokenPairSerializer;
 import io.trino.server.security.oauth2.TokenPairSerializer.TokenPair;
@@ -53,6 +54,7 @@ public class OAuth2WebUiAuthenticationFilter
     private static final Logger LOG = Logger.get(OAuth2WebUiAuthenticationFilter.class);
 
     private final String principalField;
+    private final Optional<String> groupsField;
     private final OAuth2Service service;
     private final OAuth2Client client;
     private final TokenPairSerializer tokenPairSerializer;
@@ -68,6 +70,7 @@ public class OAuth2WebUiAuthenticationFilter
         this.tokenExpiration = requireNonNull(tokenExpiration, "tokenExpiration is null");
         this.userMapping = UserMapping.createUserMapping(oauth2Config.getUserMappingPattern(), oauth2Config.getUserMappingFile());
         this.principalField = oauth2Config.getPrincipalField();
+        this.groupsField = oauth2Config.getGroupsField();
     }
 
     @Override
@@ -108,6 +111,7 @@ public class OAuth2WebUiAuthenticationFilter
             String principalName = (String) principal;
             Identity.Builder builder = Identity.forUser(userMapping.mapUser(principalName));
             builder.withPrincipal(new BasicPrincipal(principalName));
+            groupsField.ifPresent(field -> builder.withGroups(OAuth2Groups.extractGroups(claims.get().get(field), field)));
             setAuthenticatedIdentity(request, builder.build());
         }
         catch (UserMappingException e) {

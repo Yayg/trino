@@ -43,6 +43,7 @@ public class OAuth2Authenticator
     private static final Logger log = Logger.get(OAuth2Authenticator.class);
     private final OAuth2Client client;
     private final String principalField;
+    private final Optional<String> groupsField;
     private final UserMapping userMapping;
     private final TokenPairSerializer tokenPairSerializer;
     private final TokenRefresher tokenRefresher;
@@ -52,6 +53,7 @@ public class OAuth2Authenticator
     {
         this.client = requireNonNull(client, "service is null");
         this.principalField = config.getPrincipalField();
+        this.groupsField = config.getGroupsField();
         this.tokenRefresher = requireNonNull(tokenRefresher, "tokenRefresher is null");
         this.tokenPairSerializer = requireNonNull(tokenPairSerializer, "tokenPairSerializer is null");
         userMapping = createUserMapping(config.getUserMappingPattern(), config.getUserMappingFile());
@@ -80,6 +82,7 @@ public class OAuth2Authenticator
         }
         Identity.Builder builder = Identity.forUser(userMapping.mapUser(principal.get()));
         builder.withPrincipal(new BasicPrincipal(principal.get()));
+        groupsField.ifPresent(field -> builder.withGroups(OAuth2Groups.extractGroups(claims.get().get(field), field)));
         return Optional.of(builder.build());
     }
 

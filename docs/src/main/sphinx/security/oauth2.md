@@ -156,6 +156,24 @@ The following configuration properties are available:
   - The field of the access token used for the Trino user principal. Defaults to
     `sub`. Other commonly used fields include `sAMAccountName`, `name`,
     `upn`, and `email`.
+* - `http-server.authentication.oauth2.groups-field`
+  - The claim of the access token used for the Trino user's groups. The claim
+    value must be either a single string, or a JSON array of strings, for
+    example `"groups": ["admin", "finance"]` as commonly returned by Keycloak
+    and other OIDC providers. Not set by default, which disables reading
+    groups from the token. Groups extracted this way are combined with any
+    groups returned by a configured group provider, see
+    [](/security/group-mapping). Groups are re-read from the token claims on
+    every request, so group membership changes at the identity provider
+    propagate as soon as a new access token is issued: when the access token
+    expires, either through a [refresh token](trino-oauth2-refresh-tokens)
+    exchange or a new authorization flow. The maximum staleness of group
+    information is therefore bounded by the access token lifetime configured
+    at the identity provider. When
+    `http-server.authentication.oauth2.oidc.use-userinfo-endpoint` is enabled
+    and the identity provider returns groups from the `userinfo` endpoint,
+    group information is retrieved live from the identity provider on every
+    request.
 * - `http-server.authentication.oauth2.oidc.discovery`
   - Enable reading the [OIDC provider metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
     Default is `true`.
